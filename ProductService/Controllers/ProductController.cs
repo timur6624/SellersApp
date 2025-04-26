@@ -8,9 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ProductService.Controllers;
 
-[Authorize]
+
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/Product")]
 public class ProductController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -24,11 +24,11 @@ public class ProductController : ControllerBase
     public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto dto)
     {
         // Получаем UserId из JWT-токена
-        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        //var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
         var product = new Product
         {
-            UserId = userId,
+            //UserId = userId,
             Name = dto.Name,
             BuyPrice = dto.BuyPrice,
             SellPrice = dto.SellPrice
@@ -53,9 +53,9 @@ public class ProductController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetMyProducts()
     {
-        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        //var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var products = await _context.Products
-            .Where(p => p.UserId == userId)
+            //.Where(p => p.UserId == userId)
             .Select(p => new ProductResponseDto
             {
                 Id = p.Id,
@@ -72,9 +72,9 @@ public class ProductController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProduct(Guid id)
     {
-        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        //var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var product = await _context.Products
-            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+            .FirstOrDefaultAsync(p => p.Id == id);// и юзер равенство юзер айди
 
         if (product == null)
             return NotFound("Товар не найден или не принадлежит вам");
