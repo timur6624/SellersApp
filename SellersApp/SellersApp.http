@@ -1,0 +1,6 @@
+@SellersApp_HostAddress = http://localhost:5079
+
+GET {{SellersApp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

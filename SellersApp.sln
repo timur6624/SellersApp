@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthService", "AuthService\AuthService.csproj", "{4F459A65-8747-44F4-BF48-91C40CC3EEDE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProductService", "ProductService\ProductService.csproj", "{D292E06E-59D8-4124-858C-0FC6DCD3C4D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProfitService", "ProfitService\ProfitService.csproj", "{2B324174-8B49-4D45-99D3-86D2BA632B8D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4F459A65-8747-44F4-BF48-91C40CC3EEDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F459A65-8747-44F4-BF48-91C40CC3EEDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F459A65-8747-44F4-BF48-91C40CC3EEDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F459A65-8747-44F4-BF48-91C40CC3EEDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D292E06E-59D8-4124-858C-0FC6DCD3C4D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D292E06E-59D8-4124-858C-0FC6DCD3C4D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D292E06E-59D8-4124-858C-0FC6DCD3C4D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D292E06E-59D8-4124-858C-0FC6DCD3C4D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B324174-8B49-4D45-99D3-86D2BA632B8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B324174-8B49-4D45-99D3-86D2BA632B8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B324174-8B49-4D45-99D3-86D2BA632B8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B324174-8B49-4D45-99D3-86D2BA632B8D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

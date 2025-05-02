@@ -1,12 +1,15 @@
+using System.Net.Http.Headers;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProfitService.Data;
 using ProfitService.Dtos;
-using ProfitService.Models;
 
 namespace ProfitService.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ProfitReportController : ControllerBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
@@ -19,11 +22,17 @@ public class ProfitReportController : ControllerBase
     }
 
     [HttpGet("report")]
-
     public async Task<IActionResult> GetProfitReport()
     {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
         var httpClient = _httpClientFactory.CreateClient("ProductService");
-        var response = await httpClient.GetAsync("/api/product"); // без userId
+        
+        // Передаём токен авторизации при обращении к ProductService
+        var accessToken = Request.Headers["Authorization"].ToString();
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Replace("Bearer ", ""));
+
+        var response = await httpClient.GetAsync("/api/product");
 
         if (!response.IsSuccessStatusCode)
             return StatusCode(500, "ProductService unavailable");
@@ -33,13 +42,11 @@ public class ProfitReportController : ControllerBase
         if (products is null)
             return StatusCode(500, "Failed to parse products");
 
-// 2. Считаем прибыль
         var totalProfit = products.Sum(p => p.SellPrice - p.BuyPrice);
         var monthlyProfit = products
             .Where(p => p.CreatedAt.Month == DateTime.UtcNow.Month && p.CreatedAt.Year == DateTime.UtcNow.Year)
             .Sum(p => p.SellPrice - p.BuyPrice);
 
-// Вернуть что-то (например, объект с прибылью)
         return Ok(new
         {
             TotalProfit = totalProfit,

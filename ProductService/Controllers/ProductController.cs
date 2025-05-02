@@ -1,16 +1,16 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ProductService.Data;
 using ProductService.Dtos;
 using ProductService.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace ProductService.Controllers;
 
-
 [ApiController]
-[Route("api/Product")]
+[Route("api/[controller]")]
+[Authorize]
 public class ProductController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -19,19 +19,19 @@ public class ProductController : ControllerBase
     {
         _context = context;
     }
-    
+
     [HttpPost]
     public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto dto)
     {
-        // Получаем UserId из JWT-токена
-        //var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
         var product = new Product
         {
-            //UserId = userId,
+            UserId = userId,
             Name = dto.Name,
             BuyPrice = dto.BuyPrice,
-            SellPrice = dto.SellPrice
+            SellPrice = dto.SellPrice,
+            CreatedAt = DateTime.UtcNow
         };
 
         await _context.Products.AddAsync(product);
@@ -43,38 +43,40 @@ public class ProductController : ControllerBase
             Name = product.Name,
             BuyPrice = product.BuyPrice,
             SellPrice = product.SellPrice,
-            Profit = product.SellPrice - product.BuyPrice
+            Profit = product.SellPrice - product.BuyPrice,
+            CreatedAt = product.CreatedAt
         };
 
         return Ok(response);
     }
-    
-    
+
     [HttpGet]
     public async Task<IActionResult> GetMyProducts()
     {
-        //var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
         var products = await _context.Products
-            //.Where(p => p.UserId == userId)
+            .Where(p => p.UserId == userId)
             .Select(p => new ProductResponseDto
             {
                 Id = p.Id,
                 Name = p.Name,
                 BuyPrice = p.BuyPrice,
                 SellPrice = p.SellPrice,
-                Profit = p.SellPrice - p.BuyPrice
+                Profit = p.SellPrice - p.BuyPrice,
+                CreatedAt = p.CreatedAt
             })
             .ToListAsync();
 
         return Ok(products);
     }
-    
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProduct(Guid id)
     {
-        //var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var product = await _context.Products
-            .FirstOrDefaultAsync(p => p.Id == id);// и юзер равенство юзер айди
+            .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
 
         if (product == null)
             return NotFound("Товар не найден или не принадлежит вам");
@@ -82,11 +84,6 @@ public class ProductController : ControllerBase
         _context.Products.Remove(product);
         await _context.SaveChangesAsync();
 
-        return NoContent(); // 204 No Content
+        return NoContent();
     }
-    
-    
-    
-    
-    
 }
