@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчет о прибыли</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .logout-btn {
+            background-color: #f44336;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn {
+            padding: 8px 16px;
+            background-color: #4CAF50; 
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #45a049; 
+        }
+        .back-btn {
+            background-color: #2196F3;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .profit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .profit-table th, .profit-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .profit-table th {
+            background-color: #f2f2f2;
+        }
+        .profit-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .profit-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+        .last-updated {
+            color: #777;
+            font-size: 14px;
+        }
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .error {
+            background-color: #ffdddd;
+            color: #d8000c;
+        }
+        .refresh-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Отчет о прибыли</h1>
+    <div>
+        <a href="products.html" class="btn" style="margin-right: 10px; text-decoration: none;">Назад к товарам</a>
+        <button id="logoutBtn" class="logout-btn">Выйти</button>
+    </div>
+</div>
+
+<div id="message" class="message"></div>
+
+<div class="profit-card">
+    <h2>Общая прибыль</h2>
+    <div id="totalProfit" class="profit-value">Загрузка...</div>
+    <div class="last-updated">Последнее обновление: <span id="totalProfitDate">-</span></div>
+</div>
+
+<div class="profit-card">
+    <h2>Прибыль за текущий месяц</h2>
+    <div id="monthlyProfit" class="profit-value">Загрузка...</div>
+    <div class="last-updated">Последнее обновление: <span id="monthlyProfitDate">-</span></div>
+</div>
+
+<button id="refreshBtn" class="refresh-btn">Обновить данные</button>
+
+<script>
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        window.location.href = 'login.html';
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('authToken');
+        window.location.href = 'index.html';
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', loadProfitData);
+
+    async function loadProfitData() {
+        try {
+            const response = await fetch('http://localhost:5251/api/ProfitReport/report', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'none';
+
+            if (response.ok) {
+                const data = await response.json();
+
+                document.getElementById('totalProfit').textContent =
+                    `${data.totalProfit.toFixed(2)} ₽`;
+                document.getElementById('monthlyProfit').textContent =
+                    `${data.monthlyProfit.toFixed(2)} ₽`;
+
+                const now = new Date();
+                document.getElementById('totalProfitDate').textContent =
+                    now.toLocaleString();
+                document.getElementById('monthlyProfitDate').textContent =
+                    now.toLocaleString();
+            } else if (response.status === 401) {
+                localStorage.removeItem('authToken');
+                window.location.href = 'login.html';
+            } else {
+                throw new Error('Ошибка загрузки данных');
+            }
+        } catch (error) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'block';
+            messageDiv.className = 'message error';
+            messageDiv.textContent = 'Ошибка при загрузке данных: ' + error.message;
+        }
+    }
+
+ 
+    loadProfitData();
+</script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using AuthService.Data;
 using AuthService.Dtos;
 using AuthService.Models;
 using Microsoft.AspNetCore.Identity;
@@ -14,12 +15,36 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<User> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly AppDbContext _context;
 
-    public AuthController(UserManager<User> userManager, IConfiguration configuration)
+    public AuthController(UserManager<User> userManager, IConfiguration configuration,AppDbContext context)
     {
         _userManager = userManager;
         _configuration = configuration;
+        _context = context;
     }
+
+    [HttpGet]
+
+    public async Task<IActionResult> GetAll()
+    {
+        var users = _context.Users.ToList();
+        return Ok(users);
+    }
+
+    [HttpGet("{id}")]
+
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        return Ok(user);
+    }
+    
+   
 
     [HttpPost("register")]
 
@@ -28,33 +53,31 @@ public class AuthController : ControllerBase
         var existingUser = await _userManager.FindByEmailAsync(registerDto.Email);
         if (existingUser != null)
         {
-            return BadRequest("Пользователь с таким email уже существует");
+            return BadRequest(new { message = "Пользователь с таким email уже существует" });
         }
-        
+    
         var user = new User { 
             UserName = registerDto.Email,  
             Email = registerDto.Email      
-        }; // присваиваем имя и почту
-        
-        var result = await _userManager.CreateAsync(user, registerDto.Password); // создаем
-        
+        };
+    
+        var result = await _userManager.CreateAsync(user, registerDto.Password);
+
         if (!result.Succeeded)
-            return BadRequest(result.Errors);
+            return BadRequest(new { message = result.Errors.FirstOrDefault()?.Description });
 
-        return Ok("User registered successfully");
+        return Ok(new { message = "Пользователь зареган" });
     }
-
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto loginDto)
     {
         var user = await _userManager.FindByEmailAsync(loginDto.Email);
         if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
-            return Unauthorized("Invalid credentials");
+            return Unauthorized(new { message = "Неверные данные" });
 
         var token = GenerateJwtToken(user);
-        return Ok(new { Token = token });
+        return Ok(new { token = token, message = "Вход выполнен успешно" });
     }
-    
     
     private string GenerateJwtToken(User user)
     {

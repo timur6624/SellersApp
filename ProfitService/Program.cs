@@ -7,7 +7,7 @@ using ProfitService.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+builder.Services.AddCors();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -40,6 +40,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 
+
+
 builder.Services.AddDbContext<AppDbContext>(options => 
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -69,16 +71,22 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseCors(builder => builder
+    .WithOrigins("http://localhost:3000")
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials());
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();
+
 

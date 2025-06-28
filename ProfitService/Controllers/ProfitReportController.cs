@@ -28,19 +28,18 @@ public class ProfitReportController : ControllerBase
 
         var httpClient = _httpClientFactory.CreateClient("ProductService");
         
-        // Передаём токен авторизации при обращении к ProductService
         var accessToken = Request.Headers["Authorization"].ToString();
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Replace("Bearer ", ""));
 
         var response = await httpClient.GetAsync("/api/product");
 
         if (!response.IsSuccessStatusCode)
-            return StatusCode(500, "ProductService unavailable");
+            return StatusCode(500, "ProductService недоступен");
 
         var products = await response.Content.ReadFromJsonAsync<List<ProductDto>>();
 
         if (products is null)
-            return StatusCode(500, "Failed to parse products");
+            return StatusCode(500, "не получилось получить продукты");
 
         var totalProfit = products.Sum(p => p.SellPrice - p.BuyPrice);
         var monthlyProfit = products

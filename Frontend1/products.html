@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои товары</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .logout-btn {
+            background-color: #f44336;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .back-btn {
+            background-color: #2196F3;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .btn {
+            padding: 8px 16px;
+            background-color: #2196F3; 
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #0b7dda; 
+        }
+        .btn-delete {
+            background-color: #f44336;
+            color: white;
+        }
+        .btn-add {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-add:hover {
+            background-color: #45a049;
+        }
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #ddffdd;
+            color: #4F8A10;
+        }
+        .error {
+            background-color: #ffdddd;
+            color: #d8000c;
+        }
+        .form-container {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Мои товары</h1>
+    <div>
+        <a href="profit-report.html" class="btn btn-add" style="margin-right: 10px; text-decoration: none;">Отчет о прибыли</a>
+        <button id="logoutBtn" class="logout-btn">Выйти</button>
+    </div>
+</div>
+
+
+<button id="addProductBtn" class="btn btn-add">Добавить товар</button>
+<div id="message" class="message"></div>
+
+<div id="formContainer" class="form-container">
+    <h2>Добавить новый товар</h2>
+    <form id="productForm">
+        <div class="form-group">
+            <label for="name">Название:</label>
+            <input type="text" id="name" required>
+        </div>
+        <div class="form-group">
+            <label for="buyPrice">Цена покупки:</label>
+            <input type="number" id="buyPrice" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label for="sellPrice">Цена продажи:</label>
+            <input type="number" id="sellPrice" step="0.01" required>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-add">Сохранить</button>
+            <button type="button" id="cancelBtn" class="btn">Отмена</button>
+        </div>
+    </form>
+</div>
+
+<table id="productsTable">
+    <thead>
+    <tr>
+        <th>Название</th>
+        <th>Цена покупки</th>
+        <th>Цена продажи</th>
+        <th>Прибыль</th>
+        <th>Дата создания</th>
+        <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        window.location.href = 'login.html';
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('authToken');
+        window.location.href = 'index.html';
+    });
+
+    document.getElementById('addProductBtn').addEventListener('click', () => {
+        document.getElementById('formContainer').style.display = 'block';
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', () => {
+        document.getElementById('formContainer').style.display = 'none';
+        document.getElementById('productForm').reset();
+    });
+
+    document.getElementById('productForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const product = {
+            name: document.getElementById('name').value,
+            buyPrice: parseFloat(document.getElementById('buyPrice').value),
+            sellPrice: parseFloat(document.getElementById('sellPrice').value)
+        };
+
+        try {
+            const response = await fetch('http://localhost:5213/api/Product', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(product)
+            });
+
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'block';
+
+            if (response.ok) {
+                messageDiv.className = 'message success';
+                messageDiv.textContent = 'Товар успешно добавлен!';
+                document.getElementById('productForm').reset();
+                document.getElementById('formContainer').style.display = 'none';
+                await loadProducts();
+            } else {
+                const error = await response.text();
+                messageDiv.className = 'message error';
+                messageDiv.textContent = error || 'Ошибка при добавлении товара';
+            }
+        } catch (error) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'block';
+            messageDiv.className = 'message error';
+            messageDiv.textContent = 'Ошибка соединения с сервером';
+        }
+    });
+
+    async function loadProducts() {
+        try {
+            const response = await fetch('http://localhost:5213/api/Product', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const products = await response.json();
+                renderProducts(products);
+            } else if (response.status === 401) {
+                localStorage.removeItem('authToken');
+                window.location.href = 'login.html';
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+        }
+    }
+
+    function renderProducts(products) {
+        const tbody = document.querySelector('#productsTable tbody');
+        tbody.innerHTML = '';
+
+        products.forEach(product => {
+            const row = document.createElement('tr');
+
+            row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.buyPrice.toFixed(2)}</td>
+                    <td>${product.sellPrice.toFixed(2)}</td>
+                    <td>${product.profit.toFixed(2)}</td>
+                    <td>${new Date(product.createdAt).toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-delete" data-id="${product.id}">Удалить</button>
+                    </td>
+                `;
+
+            tbody.appendChild(row);
+        });
+
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = e.target.getAttribute('data-id');
+                if (confirm('Вы уверены, что хотите удалить этот товар?')) {
+                    try {
+                        const response = await fetch(`http://localhost:5213/api/Product/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        const messageDiv = document.getElementById('message');
+                        messageDiv.style.display = 'block';
+
+                        if (response.ok) {
+                            messageDiv.className = 'message success';
+                            messageDiv.textContent = 'Товар успешно удален!';
+                            await loadProducts();
+                        } else {
+                            const error = await response.text();
+                            messageDiv.className = 'message error';
+                            messageDiv.textContent = error || 'Ошибка при удалении товара';
+                        }
+                    } catch (error) {
+                        const messageDiv = document.getElementById('message');
+                        messageDiv.style.display = 'block';
+                        messageDiv.className = 'message error';
+                        messageDiv.textContent = 'Ошибка соединения с сервером';
+                    }
+                }
+            });
+        });
+    }
+    loadProducts();
+</script>
+</body>
+</html>
